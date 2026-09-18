@@ -24,9 +24,9 @@ jobs:
         with:
           gradle-version: '8.6'
 
-      - name: Ensure Root Gradle Configuration
+      - name: Inject Android Project Files & Resources
         run: |
-          # S'assure que les fichiers de configuration Gradle sont présents
+          # 1. Configuration Gradle racine
           cat << 'EOF' > android/settings.gradle.kts
           pluginManagement {
               repositories {
@@ -53,12 +53,76 @@ jobs:
           }
           EOF
 
+          # 2. Création des dossiers de ressources Android nécessaires
+          mkdir -p android/app/src/main/res/drawable
+          mkdir -p android/app/src/main/res/values
+
+          # 3. Fichier strings.xml et styles.xml
+          cat << 'EOF' > android/app/src/main/res/values/strings.xml
+          <resources>
+              <string name="app_name">Lampe Torche</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/res/values/themes.xml
+          <resources>
+              <style name="Theme.TorchApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+                  <item name="android:statusBarColor">#0B0F19</item>
+                  <item name="android:windowBackground">#0B0F19</item>
+              </style>
+          </resources>
+          EOF
+
+          # 4. Dessinables : fond du bouton et icônes
+          cat << 'EOF' > android/app/src/main/res/drawable/bg_torch_button.xml
+          <selector xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:state_selected="true">
+                  <shape android:shape="oval">
+                      <solid android:color="#F59E0B"/>
+                      <stroke android:width="6dp" android:color="#FEF08A"/>
+                      <size android:width="160dp" android:height="160dp"/>
+                  </shape>
+              </item>
+              <item>
+                  <shape android:shape="oval">
+                      <solid android:color="#1E293B"/>
+                      <stroke android:width="4dp" android:color="#334155"/>
+                      <size android:width="160dp" android:height="160dp"/>
+                  </shape>
+              </item>
+          </selector>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/res/drawable/ic_flashlight_on.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="64dp"
+              android:height="64dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#0B0F19"
+                  android:pathData="M18,2H6v6l3,3v11h6V11l3,-3V2zM13,13h-2v-3h2V13z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/res/drawable/ic_flashlight_off.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="64dp"
+              android:height="64dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#94A3B8"
+                  android:pathData="M18,2H6v6l3,3v11h6V11l3,-3V2zM13,13h-2v-3h2V13z"/>
+          </vector>
+          EOF
+
       - name: Build APK
         run: |
           cd android
-          gradle assembleDebug --stacktrace
+          gradle assembleDebug
 
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Lampe-Torche-Isaac-Le-Boss
