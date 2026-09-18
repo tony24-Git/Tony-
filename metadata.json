@@ -1,0 +1,6 @@
+{
+  "name": "Lampe Torche",
+  "description": "Application de lampe torche avec bouton unique, contrôle du flash et code Android natif Kotlin.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
