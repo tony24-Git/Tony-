@@ -24,9 +24,16 @@ jobs:
         with:
           gradle-version: '8.6'
 
-      - name: Inject Android Project Files & Resources
+      - name: Inject Android Project Files & Complete Resources
         run: |
-          # 1. Configuration Gradle racine
+          # 1. Propriétés Gradle (AndroidX obligatoire)
+          cat << 'EOF' > android/gradle.properties
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m
+          EOF
+
+          # 2. Configuration Gradle racine
           cat << 'EOF' > android/settings.gradle.kts
           pluginManagement {
               repositories {
@@ -53,11 +60,12 @@ jobs:
           }
           EOF
 
-          # 2. Création des dossiers de ressources Android nécessaires
+          # 3. Création des dossiers de ressources
           mkdir -p android/app/src/main/res/drawable
           mkdir -p android/app/src/main/res/values
+          mkdir -p android/app/src/main/res/mipmap-anydpi-v26
 
-          # 3. Fichier strings.xml et styles.xml
+          # 4. Textes & Thèmes
           cat << 'EOF' > android/app/src/main/res/values/strings.xml
           <resources>
               <string name="app_name">Lampe Torche</string>
@@ -73,7 +81,7 @@ jobs:
           </resources>
           EOF
 
-          # 4. Dessinables : fond du bouton et icônes
+          # 5. Dessinables : fond du bouton et icônes lampe
           cat << 'EOF' > android/app/src/main/res/drawable/bg_torch_button.xml
           <selector xmlns:android="http://schemas.android.com/apk/res/android">
               <item android:state_selected="true">
@@ -117,10 +125,43 @@ jobs:
           </vector>
           EOF
 
-      - name: Build APK
+          # 6. Icônes d'application pour l'écran d'accueil Android (ic_launcher et ic_launcher_round)
+          cat << 'EOF' > android/app/src/main/res/drawable/ic_launcher_foreground.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path
+                  android:fillColor="#F59E0B"
+                  android:pathData="M54,20L34,45h12v43h16V45h12z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/res/drawable/ic_launcher_background.xml
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#0B0F19" />
+          </shape>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@drawable/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@drawable/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+
+      - name: Build APK with Gradle
         run: |
           cd android
-          gradle assembleDebug
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
